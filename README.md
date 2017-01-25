@@ -158,6 +158,9 @@ If your host struggles while transcoding the stream, you can still:
 	-f mpegts udp://<monitor IP>:<monitor port>
 ```
 
+Note that this ffmpeg flavor forces a separate thread for the input socket
+reading.
+
 ### Network performance
 
 On the NIC side, one can increase the number of entries in the rx ring
