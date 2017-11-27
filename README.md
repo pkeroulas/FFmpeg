@@ -177,3 +177,7 @@ for detailed information.
 ## Contributing
 
 Patches should be submitted using Github pull requests.
+
+## Contact
+
+david.beaulieu@radio-canada.ca
