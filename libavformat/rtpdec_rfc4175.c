@@ -23,6 +23,7 @@
 
 #include "avio_internal.h"
 #include "rtpdec_formats.h"
+#include "libavutil/ancillary_data.h"
 #include "libavutil/avstring.h"
 #include "libavutil/pixdesc.h"
 
@@ -135,21 +136,38 @@ static int rfc4175_parse_sdp_line(AVFormatContext *s, int st_index,
 static int rfc4175_finalize_packet(PayloadContext *data, AVPacket *pkt,
                                    int stream_index)
 {
-   int ret;
+    AVAncillaryData * ancillary;
+    int ret;
+    uint8_t * side_data;
 
-   pkt->stream_index = stream_index;
-   ret = av_packet_from_data(pkt, data->frame, data->frame_size);
-   if (ret < 0) {
-       av_freep(&data->frame);
-   }
+    pkt->stream_index = stream_index;
+    ret = av_packet_from_data(pkt, data->frame, data->frame_size);
+    if (ret < 0) {
+        av_freep(&data->frame);
+    }
 
-   /* In the packet header, the field is set to 0 for top field
-    * and 1 for bottom */
-   pkt->flags |= data->field ? 0 : AV_PKT_FLAG_TOP_FIELD;
-   data->frame = NULL;
-   data->field = 0;
+    /* In the packet header, the field is set to 0 for top field
+     * and 1 for bottom */
+     if (data->interlaced) {
+         ancillary = av_ancillary_data_alloc();
+         if (!ancillary)
+             return AVERROR(ENOMEM);
 
-   return ret;
+         ancillary->field = data->field ? AV_ANCILLARY_DATA_FIELD_BOTTOM_FIELD
+                                         : AV_ANCILLARY_DATA_FIELD_TOP_FIELD;
+
+         side_data = av_packet_new_side_data(pkt, AV_PKT_DATA_ANCILLARY,
+                                             sizeof(AVAncillaryData));
+         if (!side_data)
+             return AVERROR(ENOMEM);
+
+         memcpy(side_data, ancillary, sizeof(AVAncillaryData));
+    }
+
+    data->frame = NULL;
+    data->field = 0;
+
+    return ret;
 }
 
 static int rfc4175_handle_packet(AVFormatContext *ctx, PayloadContext *data,
