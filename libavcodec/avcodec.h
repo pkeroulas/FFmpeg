@@ -1607,6 +1607,12 @@ enum AVPacketSideDataType {
     AV_PKT_DATA_A53_CC,
 
     /**
+     * Generic side data for any parameter that can't fit in a AVPacket,
+     * e.g. interlaced field flags.
+     */
+    AV_PKT_DATA_ANCILLARY,
+
+    /**
      * The number of side data elements (in fact a bit more than it).
      * This is not part of the public API/ABI in the sense that it may
      * change when new side data types are added.
@@ -1723,10 +1729,6 @@ typedef struct AVPacket {
  * outside the packet may be followed.
  */
 #define AV_PKT_FLAG_TRUSTED   0x0008
-/**
- * The packet contains a top field.
- */
-#define AV_PKT_FLAG_TOP_FIELD  0x0010
 
 enum AVSideDataParamChangeFlags {
     AV_SIDE_DATA_PARAM_CHANGE_CHANNEL_COUNT  = 0x0001,
